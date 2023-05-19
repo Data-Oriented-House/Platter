@@ -2,19 +2,20 @@
 	"collections": [
 		{
 			"name": "core",
-			"path": "C:\\Odin\\core"
+			"path": "C:/Odin/core"
 		},
 		{
 			"name": "vendor",
-			"path": "C:\\Odin\\vendor"
+			"path": "C:/Odin/vendor"
 		},
 		{
 			"name": "shared",
-			"path": ".\\shared"
+			"path": "./shared"
 		}
 	],
 	"enable_document_symbols": true,
 	"enable_semantic_tokens": true,
 	"enable_snippets": true,
-	"enable_hover": true
+	"enable_hover": true,
+	"verbose": true
 }

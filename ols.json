@@ -16,5 +16,6 @@
 	"enable_document_symbols": true,
 	"enable_semantic_tokens": true,
 	"enable_snippets": true,
-	"enable_hover": true
+	"enable_hover": true,
+	"verbose": true
 }

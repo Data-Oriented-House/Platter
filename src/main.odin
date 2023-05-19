@@ -104,6 +104,6 @@ main :: proc() {
         if ctx.dt > 1 do ctx.dt = 0
 
         process_input(ctx)
-        render(ctx)
+        render(ctx.renderer)
     }
 }

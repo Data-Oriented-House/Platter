@@ -27,6 +27,7 @@ initialize_window :: proc() -> (window: ^sdl2.Window, ok: bool) {
         return
     }
 
+	log.info("Initialized SDL2 window.")
 	ok = true
 	return
 }
@@ -43,6 +44,7 @@ initialize_renderer :: proc(window: ^sdl2.Window) -> (renderer: ^sdl2.Renderer, 
 		return
 	}
 
+	log.info("Initialized SDL2 renderer.")
 	ok = true
     return
 }
@@ -68,8 +70,6 @@ main :: proc() {
 		ok: bool
 		ctx.window, ok = initialize_window()
 		if !ok do return
-
-		log.info("Initialized SDL2 window.")
 	}
 
 	defer sdl2.DestroyRenderer(ctx.renderer)
@@ -77,15 +77,13 @@ main :: proc() {
 		ok: bool
 		ctx.renderer, ok = initialize_renderer(ctx.window)
 		if !ok do return
-
-		log.info("Initialized SDL2 renderer.")
 	}
 
 	{
+		log.info("Entering main loop.")
+
 		now: u64  = sdl2.GetPerformanceCounter()
 		last: u64 = 0
-
-		log.info("Entering main loop.")
 
 		for ctx.running {
 			last = now

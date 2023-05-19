@@ -80,10 +80,10 @@ main :: proc() {
 	}
 
 	{
+		log.info("Entering main loop.")
+
 		now: u64  = sdl2.GetPerformanceCounter()
 		last: u64 = 0
-
-		log.info("Entering main loop.")
 
 		for ctx.running {
 			last = now

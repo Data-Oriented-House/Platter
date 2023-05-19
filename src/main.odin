@@ -3,22 +3,7 @@ package main
 import "vendor:sdl2"
 import "core:log"
 
-WINDOW_TITLE  :: "WindowName"
-WINDOW_WIDTH  := i32(800)
-WINDOW_HEIGHT := i32(450)
-WINDOW_POS_X  :: sdl2.WINDOWPOS_UNDEFINED
-WINDOW_POS_Y  :: sdl2.WINDOWPOS_UNDEFINED
-WINDOW_FLAGS  :: sdl2.WindowFlags{.SHOWN}
-
-SDL_Context :: struct {
-	window:   ^sdl2.Window,
-	renderer: ^sdl2.Renderer,
-
-	quit:     bool,
-	dt:       f64,
-}
-
-initialize_sdl_window :: proc() -> (window: ^sdl2.Window, ok: bool) {
+initialize_window :: proc() -> (window: ^sdl2.Window, ok: bool) {
 	if sdl_res := sdl2.Init(sdl2.INIT_VIDEO); sdl_res < 0 {
         log.errorf("sdl2.init returned %v.", sdl_res)
 		ok = false
@@ -46,7 +31,7 @@ initialize_sdl_window :: proc() -> (window: ^sdl2.Window, ok: bool) {
 	return
 }
 
-initialize_sdl_renderer :: proc(window: ^sdl2.Window) -> (renderer: ^sdl2.Renderer, ok: bool) {
+initialize_renderer :: proc(window: ^sdl2.Window) -> (renderer: ^sdl2.Renderer, ok: bool) {
     renderer = sdl2.CreateRenderer(window, -1, {
 		.ACCELERATED,
 		.PRESENTVSYNC,
@@ -62,48 +47,66 @@ initialize_sdl_renderer :: proc(window: ^sdl2.Window) -> (renderer: ^sdl2.Render
     return
 }
 
-render :: proc(renderer: ^sdl2.Renderer) {
-    sdl2.RenderClear(renderer)
-    sdl2.RenderPresent(renderer)
-}
+CTX :: struct {
+	window:   ^sdl2.Window,
+	renderer: ^sdl2.Renderer,
 
-process_input :: proc(ctx: ^SDL_Context) {
-    event: sdl2.Event
-    if !sdl2.PollEvent(&event) do return
-    if event.type == .QUIT {
-		ctx.quit = true
-	}
+	running:     bool,
+	dt:       f64,
 }
 
 main :: proc() {
     context.logger = log.create_console_logger()
 
-	ctx := &SDL_Context {}
 	defer sdl2.Quit()
+	ctx := &CTX {
+		running = true,
+	}
 
-	window_ok: bool
-	ctx.window, window_ok = initialize_sdl_window()
 	defer sdl2.DestroyWindow(ctx.window)
-	if !window_ok do return
+	{
+		ok: bool
+		ctx.window, ok = initialize_window()
+		if !ok do return
 
-	renderer_ok: bool
-	ctx.renderer, renderer_ok = initialize_sdl_renderer(ctx.window)
+		log.info("Initialized SDL2 window.")
+	}
+
 	defer sdl2.DestroyRenderer(ctx.renderer)
-	if !renderer_ok do return
+	{
+		ok: bool
+		ctx.renderer, ok = initialize_renderer(ctx.window)
+		if !ok do return
 
-    ctx.quit = false
+		log.info("Initialized SDL2 renderer.")
+	}
 
-    now: u64  = sdl2.GetPerformanceCounter()
-    last: u64 = 0
+	{
+		now: u64  = sdl2.GetPerformanceCounter()
+		last: u64 = 0
 
-    for !ctx.quit {
-        last = now
-        now = sdl2.GetPerformanceCounter()
+		log.info("Entering main loop.")
 
-        ctx.dt = f64((now - last)) / f64(sdl2.GetPerformanceFrequency())
-        if ctx.dt > 1 do ctx.dt = 0
+		for ctx.running {
+			last = now
+			now = sdl2.GetPerformanceCounter()
 
-        process_input(ctx)
-        render(ctx.renderer)
-    }
+			ctx.dt = f64((now - last)) / f64(sdl2.GetPerformanceFrequency())
+			if ctx.dt > 1 {
+				ctx.dt = 0
+			}
+
+			if event: sdl2.Event; sdl2.PollEvent(&event) {
+				#partial switch event.type {
+					case .QUIT: {
+						log.info("Received QUIT event.")
+						ctx.running = false
+					}
+				}
+			}
+
+			sdl2.RenderClear(ctx.renderer)
+			sdl2.RenderPresent(ctx.renderer)
+		}
+	}
 }

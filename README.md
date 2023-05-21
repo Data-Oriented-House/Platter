@@ -1,6 +1,8 @@
 # Platter
 Data Oriented House exclusive Game Engine
 
+https://caseymuratori.com/blog_0015
+
 ## TODO
 - [ ] Rendering
 	- [ ] Meshes

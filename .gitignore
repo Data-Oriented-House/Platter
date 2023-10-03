@@ -1,3 +1,6 @@
 *.exe
 *.pdb
 *.bin
+
+zig-cache
+bin

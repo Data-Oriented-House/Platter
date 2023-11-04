@@ -1,0 +1,16 @@
+{
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Launch & debug",
+            "program": "${workspaceFolder}/zig-out/bin/platter",
+            "windows": {
+                "program": "${workspaceFolder}\\zig-out\\bin\\platter.exe"
+            },
+            "args": [],
+            "preLaunchTask": "build",
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}

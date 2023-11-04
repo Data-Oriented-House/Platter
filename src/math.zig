@@ -1,9 +1,8 @@
 const std = @import("std");
 
-const Vec3f = @Vector(3, f32);
-const Vec4f = @Vector(4, f32);
+pub const Vec3f = @Vector(3, f32);
 
-pub const Multi = struct {
+pub const multi3 = struct {
     pub const Multi3 = @Vector(8, f32);
 
     pub fn exp(b: Multi3) Multi3 {
@@ -58,20 +57,61 @@ pub const Multi = struct {
         };
     }
 
-    pub fn rotorbiang(a: Vec3f, angle: f32) Multi3 {
-        _ = angle;
-        _ = a;
+    pub fn conj(a: Multi3) Multi3 {
+        return .{ a[0], -a[1], -a[2], -a[3], -a[4], -a[5], -a[6], a[7] };
     }
 
-    pub fn vec3(a: Vec3f) Multi3 {
+    pub fn add(a: Multi3, b: Multi3) Multi3 {
+        return .{
+            a[0] + b[0],
+            a[1] + b[1],
+            a[2] + b[2],
+            a[3] + b[3],
+            a[4] + b[4],
+            a[5] + b[5],
+            a[6] + b[6],
+            a[7] + b[7],
+        };
+    }
+
+    pub fn sub(a: Multi3, b: Multi3) Multi3 {
+        return .{
+            a[0] - b[0],
+            a[1] - b[1],
+            a[2] - b[2],
+            a[3] - b[3],
+            a[4] - b[4],
+            a[5] - b[5],
+            a[6] - b[6],
+            a[7] - b[7],
+        };
+    }
+
+    pub fn grade0(a: Multi3) f32 {
+        return a[0];
+    }
+
+    pub fn grade1(a: Multi3) Vec3f {
+        return .{ a[1], a[2], a[3] };
+    }
+
+    pub fn grade2(a: Multi3) Vec3f {
+        return .{ a[4], a[5], a[6] };
+    }
+
+    pub fn grade3(a: Multi3) f32 {
+        return a[7];
+    }
+
+    pub fn vec(a: Vec3f) Multi3 {
         return .{ 0, a[0], a[1], a[2], 0, 0, 0, 0 };
     }
 
-    pub fn bivec3(a: Vec3f) Multi3 {
+    pub fn bivec(a: Vec3f) Multi3 {
         return .{ 0, 0, 0, 0, a[0], a[1], a[2], 0 };
     }
 
-    pub fn trivec3(a: f32) Multi3 {
+    pub fn trivec(a: f32) Multi3 {
         return .{ 0, 0, 0, 0, 0, 0, 0, a };
     }
 };

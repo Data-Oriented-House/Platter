@@ -2,22 +2,21 @@ const std = @import("std");
 
 pub const Vec3f = @Vector(3, f32);
 
+pub const Multi3 = @Vector(8, f32);
 pub const multi3 = struct {
-    pub const Multi3 = @Vector(8, f32);
-
     pub fn exp(b: Multi3) Multi3 {
         const ap: f32 = std.math.sqrt((b[3] + b[4]) * (b[3] + b[4]) + (b[2] + b[6]) * (b[2] + b[6]) + (b[1] + b[5]) * (b[1] + b[5]));
         const an: f32 = std.math.sqrt((b[3] - b[4]) * (b[3] - b[4]) + (b[2] - b[6]) * (b[2] - b[6]) + (b[1] - b[5]) * (b[1] - b[5]));
 
-        const sinan: f32 = std.math.sin(an) / an;
-        const sinap: f32 = std.math.sin(ap) / ap;
+        const sinan: f32 = @sin(an) / an;
+        const sinap: f32 = @sin(ap) / ap;
 
-        const cosan: f32 = std.math.cos(an);
-        const cosap: f32 = std.math.cos(ap);
+        const cosan: f32 = @cos(an);
+        const cosap: f32 = @cos(ap);
 
-        const expa: f32 = 0.5 * std.math.exp(b[0]);
-        const exphp: f32 = std.math.exp(b[7]);
-        const exphn: f32 = std.math.exp(-b[7]);
+        const expa: f32 = 0.5 * @exp(b[0]);
+        const exphp: f32 = @exp(b[7]);
+        const exphn: f32 = @exp(-b[7]);
 
         const left: f32 = expa * exphp;
         const right: f32 = expa * exphn;
@@ -103,15 +102,35 @@ pub const multi3 = struct {
         return a[7];
     }
 
-    pub fn vec(a: Vec3f) Multi3 {
-        return .{ 0, a[0], a[1], a[2], 0, 0, 0, 0 };
+    pub fn scalar(b: Multi3, a: f32) Multi3 {
+        var c: Multi3 = b;
+        c[0] = a;
+
+        return c;
     }
 
-    pub fn bivec(a: Vec3f) Multi3 {
-        return .{ 0, 0, 0, 0, a[0], a[1], a[2], 0 };
+    pub fn vec(b: Multi3, a: Vec3f) Multi3 {
+        var c: Multi3 = b;
+        c[1] = a[0];
+        c[2] = a[1];
+        c[3] = a[2];
+
+        return c;
     }
 
-    pub fn trivec(a: f32) Multi3 {
-        return .{ 0, 0, 0, 0, 0, 0, 0, a };
+    pub fn bivec(b: Multi3, a: Vec3f) Multi3 {
+        var c: Multi3 = b;
+        c[4] = a[0];
+        c[5] = a[1];
+        c[6] = a[2];
+
+        return c;
+    }
+
+    pub fn trivec(b: Multi3, a: f32) Multi3 {
+        var c: Multi3 = b;
+        c[7] = a;
+
+        return c;
     }
 };

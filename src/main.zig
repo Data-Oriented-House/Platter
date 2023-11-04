@@ -2,12 +2,12 @@ const std = @import("std");
 const math = @import("math.zig");
 
 pub fn main() !void {
-    var point: math.multi3.Multi3 = math.multi3.vec(.{ 1, 0, 0 });
+    var point: math.Multi3 = math.multi3.vec(@splat(0), .{ 0, 1, 0 });
     std.debug.print("{any}\n", .{point});
 
-    var bivec: math.Vec3f = .{ 1, 0, 0 };
+    var bivec: math.Multi3 = math.multi3.bivec(@splat(0), .{ 1, 0, 0 });
     bivec *= @splat(std.math.pi / 4.0);
-    var rotor = math.multi3.exp(math.multi3.bivec(bivec));
+    var rotor = math.multi3.exp(bivec);
     rotor = math.multi3.geo(math.multi3.geo(rotor, rotor), rotor);
 
     point = math.multi3.geo(rotor, point);

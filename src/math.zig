@@ -74,7 +74,7 @@ const vga = struct {
             return .{ a[0], -a[1], -a[2], -a[3], -a[4], -a[5], -a[6], a[7] };
         }
 
-        pub fn grade0(b: Multivec3) f32 {
+        pub fn grade0(b: Multivec3) Scalar {
             return b[0];
         }
 
@@ -82,15 +82,15 @@ const vga = struct {
             return .{ b[1], b[2], b[3] };
         }
 
-        pub fn grade2(b: Multivec3) Vec3 {
+        pub fn grade2(b: Multivec3) Bivec3 {
             return .{ b[4], b[5], b[6] };
         }
 
-        pub fn grade3(b: Multivec3) f32 {
+        pub fn grade3(b: Multivec3) Trivec3 {
             return b[7];
         }
 
-        pub fn scalar(b: Multivec3, a: f32) Multivec3 {
+        pub fn scalar(b: Multivec3, a: Scalar) Multivec3 {
             var c: Multivec3 = b;
             c[0] = a;
 
@@ -106,7 +106,7 @@ const vga = struct {
             return c;
         }
 
-        pub fn bivec(b: Multivec3, a: Vec3) Multivec3 {
+        pub fn bivec(b: Multivec3, a: Bivec3) Multivec3 {
             var c: Multivec3 = b;
             c[4] = a[0];
             c[5] = a[1];
@@ -115,20 +115,9 @@ const vga = struct {
             return c;
         }
 
-        pub fn trivec(b: Multivec3, a: f32) Multivec3 {
+        pub fn trivec(b: Multivec3, a: Trivec3) Multivec3 {
             var c: Multivec3 = b;
             c[7] = a;
-
-            return c;
-        }
-
-        pub fn rotor(b: Multivec3, a: Rotor3) Multivec3 {
-            var c: Multivec3 = b;
-
-            c[0] = a[0];
-            c[4] = a[1];
-            c[5] = a[2];
-            c[6] = a[3];
 
             return c;
         }

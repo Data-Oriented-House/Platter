@@ -1,14 +1,14 @@
 local function grade(str)
-	for i = 1, 8 do
-		local s, e = string.find(str, "\n", 1)
-		local s1, e1 = string.find(str, ",", 1)
+	local lines = string.split(str, "\n")
 
-		if s > s1 then
-		local s2, e2 = string.find(str, "%w", e + 1)
-		local s3, e3 = string.find(str, ",", e + 1)
+	local grades = ""
 
-		if (s2 < s3) then
-	end
+	if #lines[2] > 6 then grades ..= 0 end
+	if #lines[3] > 6 or #lines[4] > 1 or #lines[5] > 1 then grades ..= 1 end
+	if #lines[6] > 6 or #lines[7] > 1 or #lines[8] > 1 then grades ..= 2 end
+	if #lines[9] > 6 then grades ..= 3 end
+
+	return grades
 end
 
 local function prototype(gradea, gradeb)

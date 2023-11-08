@@ -1,5 +1,4 @@
 const std = @import("std");
-const utility = @import("utility.zig");
 
 const vga = struct {
     pub const Scalar = f32;
@@ -7,16 +6,73 @@ const vga = struct {
     pub const Bivec3 = @Vector(3, f32);
     pub const Trivec3 = f32;
 
-    pub fn multivector(comptime parts: []type) type {
-        comptime var size = 0;
-        for (parts) |part| {
-            size += @sizeOf(part) / 4;
-        }
+    pub const Multivec3 = struct { Scalar, Vec3, Bivec3, Trivec3 };
 
-        return @Vector(size, f32);
+    pub fn geo(a: Scalar, b: Trivec3) struct { Scalar } {
+        return .{a * b};
     }
 
-    pub const Multivec3 = multivector(.{ Scalar, Vec3, Bivec3, Trivec3 });
+    pub fn geo(a: Vec3, b: Trivec3) struct { Bivec3 } {
+        return .{ a[2] * b, a[0] * b, a[1] * b };
+    }
+
+    pub fn geo(a: Bivec3, b: Trivec3) struct { Vec3 } {
+        return .{.{ a[1] * b, a[2] * b, a[0] * b }};
+    }
+
+    pub fn geo(a: Trivec3, b: Trivec3) struct { Scalar } {
+        return .{-a * b};
+    }
+
+    pub fn geo(a: Scalar, b: Bivec3) struct { Bivec3 } {
+        return .{.{ a * b[0], a * b[1], a * b[2] }};
+    }
+
+    pub fn geo(a: Vec3, b: Bivec3) struct { Vec3, Trivec3 } {
+        return .{ .{ a[2] * b[4] + a[3] * b[6], a[1] * b[4] + a[3] * b[5], a[1] * b[6] + a[2] * b[5] }, a[1] * b[5] + a[2] * b[6] + a[3] * b[4] };
+    }
+
+    pub fn geo(a: Bivec3, b: Bivec3) struct { Scalar, Bivec3 } {
+        return .{ a[0] * b[0] - a[1] * b[1] - a[2] * b[2], .{ a[1] * b[2] + a[2] * b[1], a[0] * b[2] + a[2] * b[0], a[0] * b[1] + a[1] * b[0] } };
+    }
+
+    pub fn geo(a: Trivec3, b: Bivec3) struct { Vec3 } {
+        return .{.{ a * b[1], a * b[2], a * b[0] }};
+    }
+
+    pub fn geo(a: Scalar, b: Vec3) struct { Vec3 } {
+        return .{.{ a* b[0], a * b[1], a * b[2] }};
+    }
+
+    pub fn geo(a: Vec3, b: Vec3) struct { Scalar, Bivec3 } {
+        return .{ a[1] * b[1] + a[2] * b[2] + a[3] * b[3], .{ a[1] * b[2] - a[2] * b[1], a[2] * b[3] - a[3] * b[2], a[1] * b[3] + a[3] * b[1] } };
+    }
+
+    pub fn geo(a: Bivec3, b: Vec3) struct { Vec3, Trivec3 } {
+        return .{.{ a[0] * b[1] - a[2] * b[2], a[0] * b[0] + a[1] * b[2], a[1] * b[1] + a[2] * b[0] }, a[0] * b[2] + a[1] * b[0] + a[2] * b[1] };
+    }
+
+    pub fn geo(a: Trivec3, b: Vec3) struct { Bivec3 } {
+        return .{ a * b[2], a * b[0], a * b[1], };
+    }
+
+    pub fn geo(a: Multivec3, b: Multivec3) Multivec3 {
+
+        // Sona did this by hand
+        //
+        // God rest her soul.
+        return .{
+            a[0] * b[0] + a[1] * b[1] + a[2] * b[2] + a[3] * b[3] - a[4] * b[4] - a[5] * b[5] - a[6] * b[6] - a[7] * b[7],
+            a[0] * b[1] + a[1] * b[0] - a[2] * b[4] + a[3] * b[6] + a[4] * b[2] - a[5] * b[7] - a[6] * b[3] - a[7] * b[5],
+            a[0] * b[2] + a[1] * b[4] + a[2] * b[0] - a[3] * b[5] - a[4] * b[1] + a[5] * b[3] - a[6] * b[7] - a[7] * b[6],
+            a[0] * b[3] - a[1] * b[6] + a[2] * b[5] + a[3] * b[0] - a[4] * b[7] - a[5] * b[2] + a[6] * b[1] - a[7] * b[4],
+            a[0] * b[4] + a[1] * b[2] - a[2] * b[1] + a[3] * b[7] + a[4] * b[0] - a[5] * b[6] + a[6] * b[5] + a[7] * b[3],
+            a[0] * b[5] + a[1] * b[7] + a[2] * b[3] - a[3] * b[2] + a[4] * b[6] + a[5] * b[0] - a[6] * b[4] + a[7] * b[1],
+            a[0] * b[6] - a[1] * b[3] + a[2] * b[7] + a[3] * b[1] - a[4] * b[5] + a[5] * b[4] + a[6] * b[0] + a[7] * b[2],
+            a[0] * b[7] + a[1] * b[5] + a[2] * b[6] + a[3] * b[4] + a[4] * b[3] + a[5] * b[1] + a[6] * b[2] + a[7] * b[0],
+        };
+    }
+
     pub const multivec3 = struct {
         pub fn exp(b: Multivec3) Multivec3 {
             const ap: f32 = std.math.sqrt((b[3] + b[4]) * (b[3] + b[4]) + (b[2] + b[6]) * (b[2] + b[6]) + (b[1] + b[5]) * (b[1] + b[5]));
@@ -50,23 +106,6 @@ const vga = struct {
                 leftVector * (b[5] - b[1]) + rightVector * (b[1] + b[5]),
                 leftVector * (b[6] - b[2]) + rightVector * (b[2] + b[6]),
                 leftScalar - rightScalar,
-            };
-        }
-
-        pub fn geo(a: Multivec3, b: Multivec3) Multivec3 {
-
-            // Sona did this by hand
-            //
-            // God rest her soul.
-            return .{
-                a[0] * b[0] + a[1] * b[1] + a[2] * b[2] + a[3] * b[3] - a[4] * b[4] - a[5] * b[5] - a[6] * b[6] - a[7] * b[7],
-                a[0] * b[1] + a[1] * b[0] - a[2] * b[4] + a[3] * b[6] + a[4] * b[2] - a[5] * b[7] - a[6] * b[3] - a[7] * b[5],
-                a[0] * b[2] + a[1] * b[4] + a[2] * b[0] - a[3] * b[5] - a[4] * b[1] + a[5] * b[3] - a[6] * b[7] - a[7] * b[6],
-                a[0] * b[3] - a[1] * b[6] + a[2] * b[5] + a[3] * b[0] - a[4] * b[7] - a[5] * b[2] + a[6] * b[1] - a[7] * b[4],
-                a[0] * b[4] + a[1] * b[2] - a[2] * b[1] + a[3] * b[7] + a[4] * b[0] - a[5] * b[6] + a[6] * b[5] + a[7] * b[3],
-                a[0] * b[5] + a[1] * b[7] + a[2] * b[3] - a[3] * b[2] + a[4] * b[6] + a[5] * b[0] - a[6] * b[4] + a[7] * b[1],
-                a[0] * b[6] - a[1] * b[3] + a[2] * b[7] + a[3] * b[1] - a[4] * b[5] + a[5] * b[4] + a[6] * b[0] + a[7] * b[2],
-                a[0] * b[7] + a[1] * b[5] + a[2] * b[6] + a[3] * b[4] + a[4] * b[3] + a[5] * b[1] + a[6] * b[2] + a[7] * b[0],
             };
         }
 

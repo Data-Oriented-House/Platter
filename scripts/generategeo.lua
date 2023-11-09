@@ -60,8 +60,4 @@ local function prototype(gradea, gradeb)
 end
 
 local grades = {"0", "1", "2", "3", "01", "02", "03", "012", "013", "023", "12", "13", "23", "123", "0123"}
-for i, v in grades do
-	for j, u in grades do
-		print(prototype(v, u))
-	end
-end
+print(prototype("13", "02"))

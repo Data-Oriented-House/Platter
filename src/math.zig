@@ -2,22 +2,17 @@ pub const Vec3 = @Vector(3, f32);
 
 pub const Rotor3 = @Vector(4, f32);
 pub const rotor3 = struct {
-    pub fn exp(b: Rotor3) Rotor3 {
-        const mag: f32 = @sqrt(b[3] * b[3] + b[2] * b[2] + b[1] * b[1]);
+    pub fn exp(b: Vec3) Rotor3 {
+        const mag: f32 = @sqrt(b[2] * b[2] + b[1] * b[1] + b[0] * b[0]);
 
         const sin: f32 = @sin(mag) / mag;
         const cos: f32 = @cos(mag);
 
-        const expnum: f32 = 0.5 * @exp(b[0]);
-
-        const s: f32 = expnum * cos;
-        const v: f32 = expnum * sin;
-
         return .{
-            s + s,
-            2 * v * b[1],
-            2 * v * b[2],
-            2 * v * b[3],
+            cos,
+            sin * b[0],
+            sin * b[1],
+            sin * b[2],
         };
     }
 
@@ -51,24 +46,6 @@ pub const rotor3 = struct {
         return .{ a[0], -a[1], -a[2], -a[3] };
     }
 
-    pub fn add(a: Rotor3, b: Rotor3) Rotor3 {
-        return .{
-            a[0] + b[0],
-            a[1] + b[1],
-            a[2] + b[2],
-            a[3] + b[3],
-        };
-    }
-
-    pub fn sub(a: Rotor3, b: Rotor3) Rotor3 {
-        return .{
-            a[0] - b[0],
-            a[1] - b[1],
-            a[2] - b[2],
-            a[3] - b[3],
-        };
-    }
-
     pub fn grade0(a: Rotor3) f32 {
         return a[0];
     }
@@ -89,6 +66,56 @@ pub const rotor3 = struct {
         c[1] = a[0];
         c[2] = a[1];
         c[3] = a[2];
+
+        return c;
+    }
+};
+
+pub const Motor3 = @Vector(7, f32);
+pub const motor3 = struct {
+    pub fn compose(a: Motor3, b: Motor3) Motor3 {
+        const rot2 = grade02(a);
+        const trans2 = grade1(a);
+
+        const rot1 = grade02(b);
+        const trans1 = grade1(b);
+
+        var motor = rotor(b, rotor3.compose(rot2, rot1));
+        motor = vec(motor, rotor3.apply(rot2, trans1) + trans2);
+
+        return motor;
+    }
+
+    pub fn apply(a: Motor3, b: Vec3) Vec3 {
+        const rot = grade02(a);
+        const trans = grade1(a);
+
+        return rotor3.apply(rot, b) + trans;
+    }
+
+    pub fn grade1(a: Motor3) Vec3 {
+        return .{ a[0], a[1], a[2] };
+    }
+
+    pub fn grade02(a: Motor3) Rotor3 {
+        return .{ a[3], a[4], a[5], a[6] };
+    }
+
+    pub fn vec(b: Motor3, a: Vec3) Motor3 {
+        var c = b;
+        c[0] = a[0];
+        c[1] = a[1];
+        c[2] = a[2];
+
+        return c;
+    }
+
+    pub fn rotor(b: Motor3, a: Rotor3) Motor3 {
+        var c = b;
+        c[3] = a[0];
+        c[4] = a[1];
+        c[5] = a[2];
+        c[6] = a[3];
 
         return c;
     }

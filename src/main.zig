@@ -2,13 +2,19 @@ const std = @import("std");
 const math = @import("math.zig");
 
 pub fn main() !void {
-    var point: math.Vec3 = .{ 0, 1, 0 };
-    std.debug.print("{any}\n", .{point});
-
-    var bivec: math.Rotor3 = math.rotor3.bivec(@splat(0), .{ 0, 1, 0 });
-    bivec *= @splat(std.math.pi / 4.0);
+    var bivec = .{ std.math.pi / @as(comptime_float, 2), 0, 0 };
     var rotor = math.rotor3.exp(bivec);
-    const newpoint = math.rotor3.apply(rotor, point);
 
-    std.debug.print("{any}\n", .{newpoint});
+    var motor = math.motor3.rotor(@splat(0), rotor);
+    motor = math.motor3.vec(motor, .{ 0, 10, 0 });
+
+    var motor2 = math.motor3.rotor(@splat(0), rotor);
+    motor2 = math.motor3.vec(motor2, .{ 10, 0, 0 });
+
+    motor = math.motor3.compose(motor2, motor);
+
+    var point: math.Vec3 = .{ 1, 1, 1 };
+    point = math.motor3.apply(motor, point);
+
+    std.debug.print("{any}\n", .{point});
 }

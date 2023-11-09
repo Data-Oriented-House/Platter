@@ -1,38 +1,120 @@
-const SIMD4f = @Vector(4, f32);
-const SIMD3f = @Vector(3, f32);
+const SIMD4 = @Vector(4, f32);
+const SIMD3 = @Vector(3, f32);
+const SCALAR = f32;
 
-const Grade0 = f32;
+pub const Grade0 = struct {
+    data: SCALAR,
 
-pub const Grade1 = struct {
-    data: SIMD3f,
-
-    pub fn init(a: SIMD3f) Grade1 {
+    pub inline fn init(a: SCALAR) Grade0 {
         return .{ .data = a };
     }
 
-    pub const wedge = struct {
-        pub fn grade1(a: Grade1, b: Grade1) Grade2 {
-            _ = b;
-            _ = a;
+    pub const geo = struct {
+        pub inline fn grade0(a: Grade2, b: Grade0) Grade2 {
+            return Grade0.init(a.data * b.data);
         }
 
-        pub fn grade2(a: Grade1, b: Grade2) Grade3 {
-            _ = b;
-            _ = a;
+        pub inline fn grade1(a: Grade0, b: Grade1) Grade1 {
+            return Grade1.init(a.data * @as(SIMD3, @splat(b.data)));
         }
 
-        pub fn grade3(a: Grade1, b: Grade3) Grade2 {
-            _ = b;
-            _ = a;
+        pub inline fn grade2(a: Grade0, b: Grade2) Grade2 {
+            return Grade2.init(a.data * @as(SIMD3, @splat(b.data)));
+        }
+
+        pub inline fn grade3(a: Grade0, b: Grade3) Grade3 {
+            return Grade3.init(a.data * b.data);
         }
     };
+
+    pub inline fn add(a: Grade0, b: Grade0) Grade0 {
+        return a.data + b.data;
+    }
+
+    pub inline fn sub(a: Grade0, b: Grade0) Grade0 {
+        return a.data - b.data;
+    }
+};
+
+pub const Grade1 = struct {
+    data: SIMD3,
+
+    pub inline fn init(a: SIMD3) Grade1 {
+        return .{ .data = a };
+    }
+
+    pub const geo = struct {
+        pub inline fn grade0(a: Grade1, b: Grade0) Grade1 {
+            return Grade0.geo.grade1(b, a);
+        }
+
+        pub fn grade1(a: Grade1, b: Grade1) Grade02 {
+            return Grade02.init(.{
+                a.data[0] * b.data[0] + a.data[1] * b.data[1] + a.data[2] * b.data[2],
+                a.data[0] * b.data[1] - a.data[1] * b.data[0],
+                a.data[1] * b.data[2] - a.data[2] * b.data[1],
+                a.data[0] * b.data[2] + a.data[2] * b.data[0],
+            });
+        }
+
+        pub fn grade2(a: Grade1, b: Grade2) Grade23 {
+            return Grade23.init(.{
+                a.data[1] * b.data[0] + a.data[2] * b.data[2],
+                a.data[0] * b.data[0] - a.data[2] * b.data[1],
+                a.data[0] * b.data[2] + a.data[1] * b.data[1],
+                a.data[0] * b.data[1] + a.data[1] * b.data[2] + a.data[2] * b.data[0],
+            });
+        }
+
+        pub inline fn grade3(a: Grade1, b: Grade3) Grade2 {
+            return Grade2.init(a.data * @as(SIMD3, @splat(b.data)));
+        }
+    };
+
+    pub inline fn add(a: Grade1, b: Grade1) Grade1 {
+        return a.data + b.data;
+    }
+
+    pub inline fn sub(a: Grade1, b: Grade1) Grade1 {
+        return a.data - b.data;
+    }
 };
 
 pub const Grade2 = struct {
-    data: SIMD3f,
+    data: SIMD3,
 
-    pub fn init(a: SIMD3f) Grade2 {
+    pub inline fn init(a: SIMD3) Grade2 {
         return .{ .data = a };
+    }
+
+    pub const geo = struct {
+        pub inline fn grade0(a: Grade2, b: Grade0) Grade2 {
+            return Grade0.geo.grade2(b, a);
+        }
+
+        pub inline fn grade1(a: Grade1, b: Grade1) Grade2 {
+            return Grade1.geo.grade2(b, a);
+        }
+
+        pub fn grade2(a: Grade2, b: Grade2) Grade02 {
+            return Grade02.init(.{
+                a.data[0] * b.data[0] - a.data[1] * b.data[1] - a.data[2] * b.data[2],
+                a.data[1] * b.data[2] + a.data[2] * b.data[1],
+                a.data[0] * b.data[2] - a.data[2] * b.data[0],
+                a.data[0] * b.data[1] + a.data[1] * b.data[0],
+            });
+        }
+        pub inline fn grade3(a: Grade2, b: Grade3) Grade1 {
+            return Grade1.init(a.data * @as(SIMD3, @splat(b.data)));
+        }
+    };
+
+    pub inline fn add(a: Grade2, b: Grade2) Grade2 {
+        return a.data + b.data;
+    }
+
+    pub inline fn sub(a: Grade2, b: Grade2) Grade2 {
+        return a.data - b.data;
     }
 
     pub fn exp(bivec: Grade2) Grade02 {
@@ -48,79 +130,62 @@ pub const Grade2 = struct {
             sin * bivec.data[2],
         };
     }
-
-    pub const wedge = struct {
-        pub fn grade1(a: Grade1, b: Grade1) Grade2 {
-            return Grade1.wedge.grade2(b, a);
-        }
-
-        pub fn grade2(a: Grade2, b: Grade2) Grade3 {
-            _ = b;
-            _ = a;
-        }
-        pub fn grade3(a: Grade2, b: Grade3) Grade3 {
-            _ = b;
-            _ = a;
-        }
-    };
 };
 
 pub const Grade3 = struct {
-    data: Grade0,
+    data: SCALAR,
 
-    pub fn init(a: Grade0) Grade1 {
+    pub inline fn init(a: SCALAR) Grade1 {
         return .{ .data = a };
     }
 
-    pub const wedge = struct {
-        pub fn grade1(a: Grade3, b: Grade1) Grade2 {
-            Grade1.wedge.grade3(b, a);
+    pub const geo = struct {
+        pub inline fn grade0(a: Grade2, b: Grade0) Grade2 {
+            return Grade0.geo.grade3(b, a);
         }
 
-        pub fn grade2(a: Grade3, b: Grade2) Grade3 {
-            Grade2.wedge.grade3(b, a);
+        pub inline fn grade1(a: Grade3, b: Grade1) Grade2 {
+            return Grade1.geo.grade3(b, a);
         }
 
-        pub fn grade3(a: Grade3, b: Grade2) Grade0 {
-            Grade2.wedge.grade3(b, a);
+        pub inline fn grade2(a: Grade3, b: Grade2) Grade3 {
+            return Grade2.geo.grade3(b, a);
+        }
+
+        pub inline fn grade3(a: Grade3, b: Grade3) Grade0 {
+            return Grade0.init(a.data * b.data);
         }
     };
+
+    pub inline fn add(a: Grade3, b: Grade3) Grade3 {
+        return a.data + b.data;
+    }
+
+    pub inline fn sub(a: Grade3, b: Grade3) Grade3 {
+        return a.data - b.data;
+    }
 };
 
 pub const Grade02 = struct {
-    data: SIMD4f,
+    data: SIMD4,
 
-    pub fn init(a: SIMD4f) Grade02 {
+    pub inline fn init(a: SIMD4) Grade02 {
         return .{ .data = a };
     }
 
-    pub const sandwich = struct {
-        pub fn grade1(a: Grade02, b: Grade1) Grade1 {
-            const grade13: SIMD4f = .{
-                a.data[0] * b.data[0] + a.data[1] * b.data[1] - a.data[3] * b.data[2],
-                a.data[0] * b.data[1] - a.data[1] * b.data[0] + a.data[2] * b.data[2],
-                a.data[0] * b.data[2] - a.data[2] * b.data[1] + a.data[3] * b.data[0],
-                a.data[1] * b.data[2] + a.data[2] * b.data[0] + a.data[3] * b.data[1],
-            };
-
-            const grade3 = .{
-                grade13[0] * a.data[0] + grade13[1] * a.data[1] - grade13[2] * a.data[3] + grade13[3] * a.data[2],
-                -grade13[0] * a.data[1] + grade13[1] * a.data[0] + grade13[2] * a.data[2] + grade13[3] * a.data[3],
-                -grade13[0] * a.data[3] - grade13[1] * a.data[2] + grade13[2] * a.data[0] + grade13[3] * a.data[1],
-            };
-
-            return grade3;
-        }
-    };
-
     pub const geo = struct {
         pub fn grade02(a: Grade02, b: Grade02) Grade02 {
-            return .{
-                a.data[0] * b.data[0] + a.data[1] * b.data[1] + a.data[2] * b.data[2] + a.data[3] * b.data[3],
-                a.data[1] * b.data[2] - a.data[2] * b.data[1],
-                a.data[2] * b.data[3] - a.data[3] * b.data[2],
-                a.data[3] * b.data[1] - a.data[1] * b.data[3],
-            };
+            const scal1 = select(a, Grade0);
+            const scal2 = select(b, Grade0);
+
+            const bivec1 = select(a, Grade2);
+            const bivec2 = select(b, Grade2);
+
+            const grade02data = bivec1.geo.grade2(bivec2);
+            const scalar = scal1.geo.grade0(scal2).add(grade02data.select(Grade0));
+            const bivec = bivec1.geo.grade0(scal2).add(bivec2.geo.grade0(scal1)).add(grade02data.select(Grade2));
+
+            return .{ scalar, bivec[0], bivec[1], bivec[2] };
         }
     };
 
@@ -140,35 +205,30 @@ pub const Grade02 = struct {
         };
     }
 
-    pub fn grade0(a: Grade02) Grade0 {
-        return a[0];
+    pub inline fn conj(a: Grade02) Grade02 {
+        return Grade02.init(.{ a.data[0], -a.data[1], -a.data[2], -a.data[3] });
     }
 
-    pub fn grade2(a: Grade02) Grade2 {
-        return .{ a[1], a[2], a[3] };
+    pub inline fn select(a: Grade02, comptime grade: type) grade {
+        return switch (grade) {
+            Grade0 => Grade0.init(a.data[0]),
+            Grade2 => Grade2.init(.{ a.data[1], a.data[2], a.data[3] }),
+        };
     }
+};
 
-    pub fn scalar(b: Grade02, a: Grade0) Grade02 {
-        var c: Grade02 = b;
-        c[0] = a;
+pub const Grade23 = struct {
+    data: @Vector(4, Grade0),
 
-        return c;
-    }
-
-    pub fn bivector(b: Grade02, a: Grade2) Grade02 {
-        var c: Grade02 = b;
-        c.data[1] = a.data[0];
-        c.data[2] = a.data[1];
-        c.data[3] = a.data[2];
-
-        return c;
+    pub inline fn init(a: SIMD4) Grade23 {
+        return .{ .data = a };
     }
 };
 
 pub const Grade0123 = struct {
     data: @Vector(8, Grade0),
 
-    pub fn init(a: SIMD3f) Grade0123 {
+    pub fn init(a: SIMD3) Grade0123 {
         return .{ .data = a };
     }
 

@@ -60,4 +60,4 @@ local function prototype(gradea, gradeb)
 end
 
 local grades = {"0", "1", "2", "3", "01", "02", "03", "012", "013", "023", "12", "13", "23", "123", "0123"}
-print(prototype("12", "12"))
+print(prototype("02", "02"))

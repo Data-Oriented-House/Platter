@@ -54,12 +54,12 @@ local function prototype(gradea, gradeb)
 	fullproduct = string.gsub(fullproduct, " [%+%-] ,", ",", 500)
 
 	local gradetype = grade(fullproduct)
-	local header = "pub inline fn geo" .. gradea .. "_" .. gradeb .. "(a: Grade" .. gradea .. ", b: Grade" .. gradeb .. ") Grade" .. gradetype .. " {\n\treturn .{"
+	local header = "pub fn geo" .. gradea .. "_" .. gradeb .. "(a: Grade" .. gradea .. ", b: Grade" .. gradeb .. ") Grade" .. gradetype .. " {\n\treturn .{"
 
 	return header .. fullproduct .. "\t};\n}"
 end
 
-local grades = {"0", "1", "2", "3", "01", "02", "03", "013", "023", "12", "13", "123", "0123"}
+local grades = {"0", "1", "2", "3", "01", "02", "03", "012", "013", "023", "12", "13", "23", "123", "0123"}
 for i, v in grades do
 	for j, u in grades do
 		print(prototype(v, u))

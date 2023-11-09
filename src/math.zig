@@ -1,266 +1,256 @@
-pub const Vec3 = @Vector(3, f32);
+const SIMD4f = @Vector(4, f32);
+const SIMD3f = @Vector(3, f32);
 
-pub const Rotor3 = @Vector(4, f32);
-pub const rotor3 = struct {
-    pub fn exp(b: Vec3) Rotor3 {
-        const mag: f32 = @sqrt(b[2] * b[2] + b[1] * b[1] + b[0] * b[0]);
+const Grade0 = f32;
 
-        const sin: f32 = @sin(mag) / mag;
-        const cos: f32 = @cos(mag);
+pub const Grade1 = struct {
+    data: SIMD3f,
+
+    pub fn init(a: SIMD3f) Grade1 {
+        return .{ .data = a };
+    }
+
+    pub const wedge = struct {
+        pub fn grade1(a: Grade1, b: Grade1) Grade2 {
+            _ = b;
+            _ = a;
+        }
+
+        pub fn grade2(a: Grade1, b: Grade2) Grade3 {
+            _ = b;
+            _ = a;
+        }
+
+        pub fn grade3(a: Grade1, b: Grade3) Grade2 {
+            _ = b;
+            _ = a;
+        }
+    };
+};
+
+pub const Grade2 = struct {
+    data: SIMD3f,
+
+    pub fn init(a: SIMD3f) Grade2 {
+        return .{ .data = a };
+    }
+
+    pub fn exp(bivec: Grade2) Grade02 {
+        const mag: Grade0 = @sqrt(bivec.data[2] * bivec.data[2] + bivec.data[1] * bivec.data[1] + bivec.data[0] * bivec.data[0]);
+
+        const sin: Grade0 = @sin(mag) / mag;
+        const cos: Grade0 = @cos(mag);
 
         return .{
             cos,
-            sin * b[0],
-            sin * b[1],
-            sin * b[2],
+            sin * bivec.data[0],
+            sin * bivec.data[1],
+            sin * bivec.data[2],
         };
     }
 
-    pub fn compose(a: Rotor3, b: Rotor3) Rotor3 {
+    pub const wedge = struct {
+        pub fn grade1(a: Grade1, b: Grade1) Grade2 {
+            return Grade1.wedge.grade2(b, a);
+        }
+
+        pub fn grade2(a: Grade2, b: Grade2) Grade3 {
+            _ = b;
+            _ = a;
+        }
+        pub fn grade3(a: Grade2, b: Grade3) Grade3 {
+            _ = b;
+            _ = a;
+        }
+    };
+};
+
+pub const Grade3 = struct {
+    data: Grade0,
+
+    pub fn init(a: Grade0) Grade1 {
+        return .{ .data = a };
+    }
+
+    pub const wedge = struct {
+        pub fn grade1(a: Grade3, b: Grade1) Grade2 {
+            Grade1.wedge.grade3(b, a);
+        }
+
+        pub fn grade2(a: Grade3, b: Grade2) Grade3 {
+            Grade2.wedge.grade3(b, a);
+        }
+
+        pub fn grade3(a: Grade3, b: Grade2) Grade0 {
+            Grade2.wedge.grade3(b, a);
+        }
+    };
+};
+
+pub const Grade02 = struct {
+    data: SIMD4f,
+
+    pub fn init(a: SIMD4f) Grade02 {
+        return .{ .data = a };
+    }
+
+    pub const sandwich = struct {
+        pub fn grade1(a: Grade02, b: Grade1) Grade1 {
+            const grade13: SIMD4f = .{
+                a.data[0] * b.data[0] + a.data[1] * b.data[1] - a.data[3] * b.data[2],
+                a.data[0] * b.data[1] - a.data[1] * b.data[0] + a.data[2] * b.data[2],
+                a.data[0] * b.data[2] - a.data[2] * b.data[1] + a.data[3] * b.data[0],
+                a.data[1] * b.data[2] + a.data[2] * b.data[0] + a.data[3] * b.data[1],
+            };
+
+            const grade3 = .{
+                grade13[0] * a.data[0] + grade13[1] * a.data[1] - grade13[2] * a.data[3] + grade13[3] * a.data[2],
+                -grade13[0] * a.data[1] + grade13[1] * a.data[0] + grade13[2] * a.data[2] + grade13[3] * a.data[3],
+                -grade13[0] * a.data[3] - grade13[1] * a.data[2] + grade13[2] * a.data[0] + grade13[3] * a.data[1],
+            };
+
+            return grade3;
+        }
+    };
+
+    pub const geo = struct {
+        pub fn grade02(a: Grade02, b: Grade02) Grade02 {
+            return .{
+                a.data[0] * b.data[0] + a.data[1] * b.data[1] + a.data[2] * b.data[2] + a.data[3] * b.data[3],
+                a.data[1] * b.data[2] - a.data[2] * b.data[1],
+                a.data[2] * b.data[3] - a.data[3] * b.data[2],
+                a.data[3] * b.data[1] - a.data[1] * b.data[3],
+            };
+        }
+    };
+
+    pub fn exp(parabivec: Grade02) Grade02 {
+        const mag: Grade0 = @sqrt(parabivec.data[3] * parabivec.data[3] + parabivec.data[2] * parabivec.data[2] + parabivec.data[1] * parabivec.data[1]);
+
+        const sin: Grade0 = @sin(mag) / mag;
+        const cos: Grade0 = @cos(mag);
+
+        const exps: Grade0 = @exp(parabivec.data[0]);
+
         return .{
-            a[0] * b[0] + a[1] * b[1] + a[2] * b[2] + a[3] * b[3],
-            a[1] * b[2] - a[2] * b[1],
-            a[2] * b[3] - a[3] * b[2],
-            a[3] * b[1] - a[1] * b[3],
+            exps * cos,
+            exps * sin * parabivec.data[0],
+            exps * sin * parabivec.data[1],
+            exps * sin * parabivec.data[2],
         };
     }
 
-    pub fn apply(a: Rotor3, b: Vec3) Vec3 {
-        const grade13 = .{
-            a[0] * b[0] + a[1] * b[1] - a[3] * b[2],
-            a[0] * b[1] - a[1] * b[0] + a[2] * b[2],
-            a[0] * b[2] - a[2] * b[1] + a[3] * b[0],
-            a[1] * b[2] + a[2] * b[0] + a[3] * b[1],
-        };
-
-        const grade3 = .{
-            grade13[0] * a[0] + grade13[1] * a[1] - grade13[2] * a[3] + grade13[3] * a[2],
-            -grade13[0] * a[1] + grade13[1] * a[0] + grade13[2] * a[2] + grade13[3] * a[3],
-            -grade13[0] * a[3] - grade13[1] * a[2] + grade13[2] * a[0] + grade13[3] * a[1],
-        };
-
-        return grade3;
-    }
-
-    pub fn conj(a: Rotor3) Rotor3 {
-        return .{ a[0], -a[1], -a[2], -a[3] };
-    }
-
-    pub fn grade0(a: Rotor3) f32 {
+    pub fn grade0(a: Grade02) Grade0 {
         return a[0];
     }
 
-    pub fn grade2(a: Rotor3) Vec3 {
+    pub fn grade2(a: Grade02) Grade2 {
         return .{ a[1], a[2], a[3] };
     }
 
-    pub fn scalar(b: Rotor3, a: f32) Rotor3 {
-        var c: Rotor3 = b;
+    pub fn scalar(b: Grade02, a: Grade0) Grade02 {
+        var c: Grade02 = b;
         c[0] = a;
 
         return c;
     }
 
-    pub fn bivec(b: Rotor3, a: Vec3) Rotor3 {
-        var c: Rotor3 = b;
-        c[1] = a[0];
-        c[2] = a[1];
-        c[3] = a[2];
+    pub fn bivector(b: Grade02, a: Grade2) Grade02 {
+        var c: Grade02 = b;
+        c.data[1] = a.data[0];
+        c.data[2] = a.data[1];
+        c.data[3] = a.data[2];
 
         return c;
     }
 };
 
-pub const Motor3 = @Vector(7, f32);
-pub const motor3 = struct {
-    pub fn compose(a: Motor3, b: Motor3) Motor3 {
-        const rot2 = grade02(a);
-        const trans2 = grade1(a);
+pub const Grade0123 = struct {
+    data: @Vector(8, Grade0),
 
-        const rot1 = grade02(b);
-        const trans1 = grade1(b);
-
-        var motor = rotor(b, rotor3.compose(rot2, rot1));
-        motor = vec(motor, rotor3.apply(rot2, trans1) + trans2);
-
-        return motor;
+    pub fn init(a: SIMD3f) Grade0123 {
+        return .{ .data = a };
     }
 
-    pub fn apply(a: Motor3, b: Vec3) Vec3 {
-        const rot = grade02(a);
-        const trans = grade1(a);
+    pub fn exp(b: Grade0123) Grade0123 {
+        const ap: Grade0 = @sqrt((b.data[3] + b.data[4]) * (b.data[3] + b.data[4]) + (b.data[2] + b.data[6]) * (b.data[2] + b.data[6]) + (b.data[1] + b.data[5]) * (b.data[1] + b.data[5]));
+        const an: Grade0 = @sqrt((b.data[3] - b.data[4]) * (b.data[3] - b.data[4]) + (b.data[2] - b.data[6]) * (b.data[2] - b.data[6]) + (b.data[1] - b.data[5]) * (b.data[1] - b.data[5]));
 
-        return rotor3.apply(rot, b) + trans;
-    }
+        const sinan: Grade0 = @sin(an) / an;
+        const sinap: Grade0 = @sin(ap) / ap;
 
-    pub fn grade1(a: Motor3) Vec3 {
-        return .{ a[0], a[1], a[2] };
-    }
+        const cosan: Grade0 = @cos(an);
+        const cosap: Grade0 = @cos(ap);
 
-    pub fn grade02(a: Motor3) Rotor3 {
-        return .{ a[3], a[4], a[5], a[6] };
-    }
+        const expa: Grade0 = 0.5 * @exp(b.data[0]);
+        const exphp: Grade0 = @exp(b.data[7]);
+        const exphn: Grade0 = @exp(-b.data[7]);
 
-    pub fn vec(b: Motor3, a: Vec3) Motor3 {
-        var c = b;
-        c[0] = a[0];
-        c[1] = a[1];
-        c[2] = a[2];
+        const left: Grade0 = expa * exphp;
+        const right: Grade0 = expa * exphn;
 
-        return c;
-    }
+        const leftScalar: Grade0 = left * cosan;
+        const rightScalar: Grade0 = right * cosap;
 
-    pub fn rotor(b: Motor3, a: Rotor3) Motor3 {
-        var c = b;
-        c[3] = a[0];
-        c[4] = a[1];
-        c[5] = a[2];
-        c[6] = a[3];
-
-        return c;
-    }
-};
-
-pub const Multi3 = @Vector(8, f32);
-pub const multi3 = struct {
-    pub fn exp(b: Multi3) Multi3 {
-        const ap: f32 = @sqrt((b[3] + b[4]) * (b[3] + b[4]) + (b[2] + b[6]) * (b[2] + b[6]) + (b[1] + b[5]) * (b[1] + b[5]));
-        const an: f32 = @sqrt((b[3] - b[4]) * (b[3] - b[4]) + (b[2] - b[6]) * (b[2] - b[6]) + (b[1] - b[5]) * (b[1] - b[5]));
-
-        const sinan: f32 = @sin(an) / an;
-        const sinap: f32 = @sin(ap) / ap;
-
-        const cosan: f32 = @cos(an);
-        const cosap: f32 = @cos(ap);
-
-        const expa: f32 = 0.5 * @exp(b[0]);
-        const exphp: f32 = @exp(b[7]);
-        const exphn: f32 = @exp(-b[7]);
-
-        const left: f32 = expa * exphp;
-        const right: f32 = expa * exphn;
-
-        const leftScalar: f32 = left * cosan;
-        const rightScalar: f32 = right * cosap;
-
-        const leftVector: f32 = left * sinan;
-        const rightVector: f32 = right * sinap;
+        const leftVector: Grade0 = left * sinan;
+        const rightVector: Grade0 = right * sinap;
 
         return .{
             leftScalar + rightScalar,
-            leftVector * (b[1] - b[5]) + rightVector * (b[1] + b[5]),
-            leftVector * (b[2] - b[6]) + rightVector * (b[2] + b[6]),
-            leftVector * (b[3] - b[4]) + rightVector * (b[3] + b[4]),
-            leftVector * (b[4] - b[3]) + rightVector * (b[3] + b[4]),
-            leftVector * (b[5] - b[1]) + rightVector * (b[1] + b[5]),
-            leftVector * (b[6] - b[2]) + rightVector * (b[2] + b[6]),
+            leftVector * (b.data[1] - b.data[5]) + rightVector * (b.data[1] + b.data[5]),
+            leftVector * (b.data[2] - b.data[6]) + rightVector * (b.data[2] + b.data[6]),
+            leftVector * (b.data[3] - b.data[4]) + rightVector * (b.data[3] + b.data[4]),
+            leftVector * (b.data[4] - b.data[3]) + rightVector * (b.data[3] + b.data[4]),
+            leftVector * (b.data[5] - b.data[1]) + rightVector * (b.data[1] + b.data[5]),
+            leftVector * (b.data[6] - b.data[2]) + rightVector * (b.data[2] + b.data[6]),
             leftScalar - rightScalar,
         };
     }
 
-    pub fn geo(a: Multi3, b: Multi3) Multi3 {
+    pub fn geo(a: Grade0123, b: Grade0123) Grade0123 {
 
         // Sona did this by hand
         //
         // God rest her soul.
         return .{
-            a[0] * b[0] + a[1] * b[1] + a[2] * b[2] + a[3] * b[3] - a[4] * b[4] - a[5] * b[5] - a[6] * b[6] - a[7] * b[7],
-            a[0] * b[1] + a[1] * b[0] - a[2] * b[4] + a[3] * b[6] + a[4] * b[2] - a[5] * b[7] - a[6] * b[3] - a[7] * b[5],
-            a[0] * b[2] + a[1] * b[4] + a[2] * b[0] - a[3] * b[5] - a[4] * b[1] + a[5] * b[3] - a[6] * b[7] - a[7] * b[6],
-            a[0] * b[3] - a[1] * b[6] + a[2] * b[5] + a[3] * b[0] - a[4] * b[7] - a[5] * b[2] + a[6] * b[1] - a[7] * b[4],
-            a[0] * b[4] + a[1] * b[2] - a[2] * b[1] + a[3] * b[7] + a[4] * b[0] - a[5] * b[6] + a[6] * b[5] + a[7] * b[3],
-            a[0] * b[5] + a[1] * b[7] + a[2] * b[3] - a[3] * b[2] + a[4] * b[6] + a[5] * b[0] - a[6] * b[4] + a[7] * b[1],
-            a[0] * b[6] - a[1] * b[3] + a[2] * b[7] + a[3] * b[1] - a[4] * b[5] + a[5] * b[4] + a[6] * b[0] + a[7] * b[2],
-            a[0] * b[7] + a[1] * b[5] + a[2] * b[6] + a[3] * b[4] + a[4] * b[3] + a[5] * b[1] + a[6] * b[2] + a[7] * b[0],
+            a.data[0] * b.data[0] + a.data[1] * b.data[1] + a.data[2] * b.data[2] + a.data[3] * b.data[3] - a.data[4] * b.data[4] - a.data[5] * b.data[5] - a.data[6] * b.data[6] - a.data[7] * b.data[7],
+            a.data[0] * b.data[1] + a.data[1] * b.data[0] - a.data[2] * b.data[4] + a.data[3] * b.data[6] + a.data[4] * b.data[2] - a.data[5] * b.data[7] - a.data[6] * b.data[3] - a.data[7] * b.data[5],
+            a.data[0] * b.data[2] + a.data[1] * b.data[4] + a.data[2] * b.data[0] - a.data[3] * b.data[5] - a.data[4] * b.data[1] + a.data[5] * b.data[3] - a.data[6] * b.data[7] - a.data[7] * b.data[6],
+            a.data[0] * b.data[3] - a.data[1] * b.data[6] + a.data[2] * b.data[5] + a.data[3] * b.data[0] - a.data[4] * b.data[7] - a.data[5] * b.data[2] + a.data[6] * b.data[1] - a.data[7] * b.data[4],
+            a.data[0] * b.data[4] + a.data[1] * b.data[2] - a.data[2] * b.data[1] + a.data[3] * b.data[7] + a.data[4] * b.data[0] - a.data[5] * b.data[6] + a.data[6] * b.data[5] + a.data[7] * b.data[3],
+            a.data[0] * b.data[5] + a.data[1] * b.data[7] + a.data[2] * b.data[3] - a.data[3] * b.data[2] + a.data[4] * b.data[6] + a.data[5] * b.data[0] - a.data[6] * b.data[4] + a.data[7] * b.data[1],
+            a.data[0] * b.data[6] - a.data[1] * b.data[3] + a.data[2] * b.data[7] + a.data[3] * b.data[1] - a.data[4] * b.data[5] + a.data[5] * b.data[4] + a.data[6] * b.data[0] + a.data[7] * b.data[2],
+            a.data[0] * b.data[7] + a.data[1] * b.data[5] + a.data[2] * b.data[6] + a.data[3] * b.data[4] + a.data[4] * b.data[3] + a.data[5] * b.data[1] + a.data[6] * b.data[2] + a.data[7] * b.data[0],
         };
     }
 
-    pub fn conj(a: Multi3) Multi3 {
-        return .{ a[0], -a[1], -a[2], -a[3], -a[4], -a[5], -a[6], a[7] };
+    pub fn conj(a: Grade0123) Grade0123 {
+        return .{ a.data[0], -a.data[1], -a.data[2], -a.data[3], -a.data[4], -a.data[5], -a.data[6], a.data[7] };
     }
 
-    pub fn add(a: Multi3, b: Multi3) Multi3 {
+    pub fn add(a: Grade0123, b: Grade0123) Grade0123 {
         return .{
-            a[0] + b[0],
-            a[1] + b[1],
-            a[2] + b[2],
-            a[3] + b[3],
-            a[4] + b[4],
-            a[5] + b[5],
-            a[6] + b[6],
-            a[7] + b[7],
+            a.data[0] + b.data[0],
+            a.data[1] + b.data[1],
+            a.data[2] + b.data[2],
+            a.data[3] + b.data[3],
+            a.data[4] + b.data[4],
+            a.data[5] + b.data[5],
+            a.data[6] + b.data[6],
+            a.data[7] + b.data[7],
         };
     }
 
-    pub fn sub(a: Multi3, b: Multi3) Multi3 {
+    pub fn sub(a: Grade0123, b: Grade0123) Grade0123 {
         return .{
-            a[0] - b[0],
-            a[1] - b[1],
-            a[2] - b[2],
-            a[3] - b[3],
-            a[4] - b[4],
-            a[5] - b[5],
-            a[6] - b[6],
-            a[7] - b[7],
+            a.data[0] - b.data[0],
+            a.data[1] - b.data[1],
+            a.data[2] - b.data[2],
+            a.data[3] - b.data[3],
+            a.data[4] - b.data[4],
+            a.data[5] - b.data[5],
+            a.data[6] - b.data[6],
+            a.data[7] - b.data[7],
         };
-    }
-
-    pub fn grade0(b: Multi3) f32 {
-        return b[0];
-    }
-
-    pub fn grade1(b: Multi3) Vec3 {
-        return .{ b[1], b[2], b[3] };
-    }
-
-    pub fn grade2(b: Multi3) Vec3 {
-        return .{ b[4], b[5], b[6] };
-    }
-
-    pub fn grade3(b: Multi3) f32 {
-        return b[7];
-    }
-
-    pub fn scalar(b: Multi3, a: f32) Multi3 {
-        var c: Multi3 = b;
-        c[0] = a;
-
-        return c;
-    }
-
-    pub fn vec(b: Multi3, a: Vec3) Multi3 {
-        var c: Multi3 = b;
-        c[1] = a[0];
-        c[2] = a[1];
-        c[3] = a[2];
-
-        return c;
-    }
-
-    pub fn bivec(b: Multi3, a: Vec3) Multi3 {
-        var c: Multi3 = b;
-        c[4] = a[0];
-        c[5] = a[1];
-        c[6] = a[2];
-
-        return c;
-    }
-
-    pub fn trivec(b: Multi3, a: f32) Multi3 {
-        var c: Multi3 = b;
-        c[7] = a;
-
-        return c;
-    }
-
-    pub fn rotor(b: Multi3, a: Rotor3) Multi3 {
-        var c: Multi3 = b;
-
-        c[0] = a[0];
-        c[4] = a[1];
-        c[5] = a[2];
-        c[6] = a[3];
-
-        return c;
     }
 };

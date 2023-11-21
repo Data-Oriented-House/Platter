@@ -18,6 +18,6 @@ pub inline fn Multi4(scalar: bool, vector: bool, bivector: bool, trivector: bool
         @"1": if (vector) SIMD4 else void,
         @"2": if (bivector) SIMD6 else void,
         @"3": if (trivector) SIMD4 else void,
-        @"4": if (trivector) SCALAR else void,
+        @"4": if (fourvector) SCALAR else void,
     };
 }

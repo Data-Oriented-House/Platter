@@ -9,15 +9,15 @@ pub fn build(b: *Build) !void {
 
     const executable = b.addExecutable(.{ .name = "platter", .root_source_file = .{ .path = "src/main.zig" }, .target = target, .optimize = optimize });
 
-    // if (b.args == null) {
-    //     _ = try std.io.getStdOut().write("Need arguments!");
+    if (b.args == null) {
+        _ = try std.io.getStdOut().write("Need arguments!");
 
-    //     return;
-    // }
+        return;
+    }
 
-    // const gen = vkgen.VkGenerateStep.create(b, b.args.?[0]);
+    const gen = vkgen.VkGenerateStep.create(b, b.args.?[0]);
 
-    // executable.addModule("vulkan", gen.getModule());
+    executable.addModule("vulkan", gen.getModule());
 
     b.installArtifact(executable);
 }

@@ -1,3 +1,7 @@
 *.exe
 *.pdb
 *.bin
+*.sublime-project
+
+zig-cache
+zig-out

@@ -1,9 +1,9 @@
 #pragma once
 
-#define number float
-
 namespace pga
 {
+	typedef float number;
+
 	struct Point {
 		number x;
 		number y;

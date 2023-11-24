@@ -1,7 +1,5 @@
 #pragma once
 
-#define number float
-
 namespace pga
 {
 	struct Point {
@@ -49,6 +47,38 @@ namespace pga
 		};
 	}
 
+	Line static inline join(Point a, Plane b)
+	{
+		return {
+			-a.w * b.x,
+			-a.w * b.y,
+			-a.w * b.z,
+			a.z * b.y - a.y * b.z,
+			a.x * b.z - a.z * b.x,
+			a.y * b.x - b.y * b.x
+		};
+	}
+
+	Plane static inline join(Point a, Line b)
+	{
+		return {
+			-a.w * b.dx,
+			-a.w * b.dy,
+			-a.w * b.dz,
+			a.x * b.dx + a.y * b.dy + a.z * b.dz
+		};
+	}
+
+	Plane static inline join(Line a, Plane b)
+	{
+		return {
+			a.dy * b.z - a.dz * b.y,
+			a.dz * b.x - a.dx * b.z,
+			a.dx * b.y - a.dy * b.x,
+			-(a.px * b.x + a.py * b.y + a.pz * b.z)
+		};
+	}
+
 	Line static inline meet(Plane a, Plane b)
 	{
 		return {
@@ -71,4 +101,4 @@ namespace pga
 		};
 	}
 
-} // namespace cga
+} // namespace pga

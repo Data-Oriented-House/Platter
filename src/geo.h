@@ -2,6 +2,8 @@
 
 namespace pga
 {
+	typedef float number;
+
 	struct Point {
 		number x;
 		number y;

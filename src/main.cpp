@@ -1,1 +1,11 @@
-int main() { return 0; }
+#include "geo.h"
+
+#include <stdio.h>
+
+int main()
+{
+
+	
+
+	return 0;
+}

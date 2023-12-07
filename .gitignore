@@ -3,3 +3,4 @@
 *.bin
 *.sublime-project
 *.user*
+build

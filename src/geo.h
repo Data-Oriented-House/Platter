@@ -36,6 +36,37 @@ namespace geo3
 		return { -a.xyz};
 	}
 
+
+	Vector static inline operator-(Vector a, Vector b)
+	{
+		return { a.x - b.x, a.y - b.y, a.z - b.z };
+	}
+
+	Bivector static inline operator-(Bivector a, Bivector b)
+	{
+		return { a.yz - b.yz, a.xz - b.xz, a.xy - b.xy };
+	}
+
+	Trivector static inline operator-(Trivector a, Trivector b)
+	{
+		return { a.xyz - b.xyz };
+	}
+
+	Vector static inline operator+(Vector a, Vector b)
+	{
+		return { a.x + b.x, a.y + b.y, a.z + b.z };
+	}
+
+	Bivector static inline operator+(Bivector a, Bivector b)
+	{
+		return { a.yz + b.yz, a.xz + b.xz, a.xy + b.xy };
+	}
+
+	Trivector static inline operator+(Trivector a, Trivector b)
+	{
+		return { a.xyz + b.xyz };
+	}
+
 	//The dot product between two multivectors is defined as
 	//$\sum_{k,s} < <a>_k <b>_s >_0$
 

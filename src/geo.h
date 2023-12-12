@@ -233,24 +233,3 @@ namespace geo3
 	}
 
 }
-
-namespace geo4
-{
-	typedef float number;
-
-	struct Vector {
-		number x;
-		number y;
-		number z;
-		number w;
-	};
-
-	struct Bivector {
-		number dx;
-		number dy;
-		number dz;
-		number px;
-		number py;
-		number pz;
-	};
-} // namespace pga

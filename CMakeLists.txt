@@ -8,4 +8,4 @@ project(
 
 add_executable(main "src/main.cpp")
 
-target_compile_options(main PUBLIC "/O1")
+target_compile_options(main PUBLIC)
